@@ -1,0 +1,51 @@
+{
+  "rules": {
+    "usernames": {
+      "$name": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid)",
+        ".validate": "newData.isString() && newData.val() === auth.uid"
+      }
+    },
+    "userProfiles": {
+      "$uid": {
+        ".read": "auth != null",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['username'])",
+        "username": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 16" }
+      }
+    },
+    "rooms": {
+      "$room": {
+        "players": {
+          ".read": "auth != null",
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.hasChildren(['uid', 'username', 'x', 'y', 'z', 'yaw', 'updatedAt'])",
+            "uid": { ".validate": "newData.val() === auth.uid" },
+            "username": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 16" },
+            "x": { ".validate": "newData.isNumber() && newData.val() >= -1000 && newData.val() <= 1000" },
+            "y": { ".validate": "newData.isNumber() && newData.val() >= -100 && newData.val() <= 200" },
+            "z": { ".validate": "newData.isNumber() && newData.val() >= -1000 && newData.val() <= 1000" },
+            "yaw": { ".validate": "newData.isNumber()" },
+            "updatedAt": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        },
+        "chat": {
+          ".read": "auth != null",
+          ".indexOn": ["createdAt"],
+          "$message": {
+            ".write": "auth != null && !data.exists() && newData.child('uid').val() === auth.uid",
+            ".validate": "newData.hasChildren(['uid', 'username', 'text', 'createdAt'])",
+            "uid": { ".validate": "newData.val() === auth.uid" },
+            "username": { ".validate": "newData.isString() && newData.val().length >= 3 && newData.val().length <= 16" },
+            "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 300" },
+            "createdAt": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          }
+        }
+      }
+    }
+  }
+}
